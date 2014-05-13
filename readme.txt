@@ -20,7 +20,7 @@ Others have also blogged about their own solutions at:
 * <http://padicode.com/blog/analytics/the-real-bounce-rate/>
 * <http://briancray.com/posts/time-on-site-bounce-rate-get-the-real-numbers-in-google-analytics>
 
-See <http://grantnorwood.com/wordpress/plugins/adjusted-bounce-rate/) for more information about the plugin and the author, or visit the GitHub repo at <https://github.com/grantnorwood/adjusted-bounce-rate> to fork my code or submit an issue.
+See <http://grantnorwood.com/wordpress/plugins/adjusted-bounce-rate/> for more information about the plugin and the author, or visit the GitHub repo at <https://github.com/grantnorwood/adjusted-bounce-rate> to fork my code or submit an issue.
 
 = Features =
 
