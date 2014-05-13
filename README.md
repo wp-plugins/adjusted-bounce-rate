@@ -62,6 +62,9 @@ Create an issue on the GitHub repo at [https://github.com/grantnorwood/adjusted-
 
 ## Changelog
 
+### 1.0.1 (2014-05-13)
+* Fixed issue when detecting if Yoast's Google Analytics for WordPress plugin is active.
+
 ### 1.0.0 (2014-05-13)
 * Initial public release.
 
