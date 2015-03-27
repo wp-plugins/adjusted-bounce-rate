@@ -28,7 +28,7 @@ if (typeof gkn === 'undefined' || !gkn) {
     gkn.AdjustedBounceRate = function() {
 
         //Private properties.
-        var version = '1.1.1',
+        var version = '1.2.0',
             debugMode = true, //if true, output helpful debug messages and such
             sandboxMode = false, //if true, do NOT actually fire the tracking event (disable in production!)
             options = {},
@@ -53,13 +53,20 @@ if (typeof gkn === 'undefined' || !gkn) {
              */
             init: function(_options) {
 
-                if (typeof pageTracker !== "undefined" || typeof _gaq !== "undefined" || debugMode === true) {
+                if (
+	                typeof window.pageTracker !== "undefined" //Old urchin tracking
+	                || typeof window._gaq !== "undefined" //Less old ga.js tracking
+	                || typeof window.ga !== "undefined" || typeof window.__gaTracker !== "undefined" //Newer Universal tracking
+	                || debugMode === true //Debug mode, skip detection
+                ) {
 
                     //Init vars.
                     options = _options;
 
                     //Log.
-                    debug.log('Adjusted_Bounce_Rate.init(): options=' + JSON.stringify(options));
+	                if (debugMode) {
+		                debug.log('Adjusted_Bounce_Rate.init(): options=' + JSON.stringify(options));
+	                }
 
                     //If ajaxify is being used, restart on state change complete event.
                     _self.initAjaxify();
@@ -72,7 +79,9 @@ if (typeof gkn === 'undefined' || !gkn) {
                     }
 
                 } else {
+
                     debug.log('Adjusted Bounce Rate: GA is not loaded.');
+
                 }
 
             },
@@ -93,7 +102,9 @@ if (typeof gkn === 'undefined' || !gkn) {
              */
             start: function() {
 
-                debug.log('Adjusted_Bounce_Rate.start()');
+	            if (debugMode) {
+                    debug.log('Adjusted_Bounce_Rate.start()');
+	            }
 
                 //Init vars.
                 startTime = new Date();
@@ -112,7 +123,9 @@ if (typeof gkn === 'undefined' || !gkn) {
              */
             restart: function() {
 
-                debug.log('Adjusted_Bounce_Rate.restart()');
+	            if (debugMode) {
+		            debug.log('Adjusted_Bounce_Rate.restart()');
+	            }
 
                 _self.stop();
 
@@ -131,7 +144,10 @@ if (typeof gkn === 'undefined' || !gkn) {
             stop: function() {
 
                 var elapsedTime = _self.formatElapsedTime(elapsedSecs);
-                debug.log('Adjusted_Bounce_Rate.stop(): stopped after "' + elapsedTime + '" (' + elapsedSecs + ' seconds).');
+
+	            if (debugMode) {
+		            debug.log('Adjusted_Bounce_Rate.stop(): stopped after "' + elapsedTime + '" (' + elapsedSecs + ' seconds).');
+	            }
 
                 clearInterval(timer);
 
@@ -185,22 +201,29 @@ if (typeof gkn === 'undefined' || !gkn) {
 
                 var elapsedTime = _self.formatElapsedTime(elapsedSecs);
 
-                debug.log('Adjusted_Bounce_Rate.trackEvent(): ' + hitCount + ' hits' + ', elapsedSecs=' + elapsedSecs + ', elapsedTime="' + elapsedTime + '"');
+	            if (debugMode) {
+		            debug.log('Adjusted_Bounce_Rate.trackEvent(): ' + hitCount + ' hits' + ', elapsedSecs=' + elapsedSecs + ', elapsedTime="' + elapsedTime + '"');
+	            }
 
                 if (typeof gaTracking === 'undefined' || gaTracking == '') {
                     //Detect GA version by script vars.
                     if (typeof window.pageTracker !== 'undefined') {
-                        gaTracking = 'pageTracker';
-                    }
-                    if (typeof _gaq !== 'undefined') {
+	                    gaTracking = 'pageTracker';
+                    } else if (typeof window._gaq !== 'undefined') {
                         gaTracking = '_gaq';
+                    } else if (typeof window.ga !== 'undefined') {
+	                    gaTracking = 'ga';
+                    } else if (typeof window.__gaTracker !== 'undefined') {
+	                    gaTracking = '__gaTracker';
                     }
                 }
 
                 if (!sandboxMode) {
                     if (gaTracking == 'pageTracker') {
 
-                        pageTracker._trackEvent(
+	                    //Old Urchin.js tracking.
+
+                        window.pageTracker._trackEvent(
                             options.engagement_event_category,
                             options.engagement_event_action,
                             elapsedTime,
@@ -209,13 +232,39 @@ if (typeof gkn === 'undefined' || !gkn) {
 
                     } else if (gaTracking == '_gaq') {
 
-                        _gaq.push([
+	                    //Old ga.js tracking.
+
+                        window._gaq.push([
                             '_trackEvent',
                             options.engagement_event_category,
                             options.engagement_event_action,
                             elapsedTime,
                             elapsedSecs || 0
                         ]);
+
+                    } else if (gaTracking == 'ga') {
+
+	                    //Newer Universal analytics.js tracking.
+
+	                    ga('send', {
+		                    'hitType': 'event',                                     // Required.
+		                    'eventCategory': options.engagement_event_category,     // Required.
+		                    'eventAction': options.engagement_event_action,         // Required.
+		                    'eventLabel': elapsedTime,
+		                    'eventValue': elapsedSecs || 0
+	                    });
+
+                    }else if (gaTracking == '__gaTracker') {
+
+	                    //Newer Universal analytics.js tracking (Yoast's Google Analytics for WordPress uses a different global variable name).
+
+	                    __gaTracker('send', {
+		                    'hitType': 'event',                                     // Required.
+		                    'eventCategory': options.engagement_event_category,     // Required.
+		                    'eventAction': options.engagement_event_action,         // Required.
+		                    'eventLabel': elapsedTime,
+		                    'eventValue': elapsedSecs || 0
+	                    });
 
                     } else {
 
